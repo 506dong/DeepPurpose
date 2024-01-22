@@ -411,9 +411,9 @@ class DBTA:
 		valid_metric_record = []
 		valid_metric_header = ["# epoch"] 
 		if self.binary:
-			valid_metric_header.extend(["AUROC", "AUPRC", "F1"])
+			valid_metric_header.extend(["AUROC", "AUPRC", "F1", "Loss"])
 		else:
-			valid_metric_header.extend(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
+			valid_metric_header.extend(["MSE", "Pearson Correlation", "with p-value", "Concordance Index", 'Loss'])
 		table = PrettyTable(valid_metric_header)
 		float2str = lambda x:'%0.4f'%x
 		if verbose:
@@ -467,7 +467,7 @@ class DBTA:
 					if self.binary:  
 						## binary: ROC-AUC, PR-AUC, F1, cross-entropy loss
 						auc, auprc, f1, loss, logits = self.test_(validation_generator, self.model)
-						lst = ["epoch " + str(epo)] + list(map(float2str,[auc, auprc, f1]))
+						lst = ["epoch " + str(epo)] + list(map(float2str,[auc, auprc, f1, loss]))
 						valid_metric_record.append(lst)
 						if auc > max_auc:
 							model_max = copy.deepcopy(self.model)
@@ -479,7 +479,7 @@ class DBTA:
 					else:  
 						### regression: MSE, Pearson Correlation, with p-value, Concordance Index  
 						mse, r2, p_val, CI, logits, loss_val = self.test_(validation_generator, self.model)
-						lst = ["epoch " + str(epo)] + list(map(float2str,[mse, r2, p_val, CI]))
+						lst = ["epoch " + str(epo)] + list(map(float2str,[mse, r2, p_val, CI, loss_val]))
 						valid_metric_record.append(lst)
 						if mse < max_MSE:
 							model_max = copy.deepcopy(self.model)
@@ -509,16 +509,16 @@ class DBTA:
 				print('--- Go for Testing ---')
 			if self.binary:
 				auc, auprc, f1, loss, logits = self.test_(testing_generator, model_max, test = True)
-				test_table = PrettyTable(["AUROC", "AUPRC", "F1"])
-				test_table.add_row(list(map(float2str, [auc, auprc, f1])))
+				test_table = PrettyTable(["AUROC", "AUPRC", "F1", "Loss"])
+				test_table.add_row(list(map(float2str, [auc, auprc, f1, loss])))
 				if verbose:
 					print('Validation at Epoch '+ str(epo + 1) + ' , AUROC: ' + str(auc)[:7] + \
 					  ' , AUPRC: ' + str(auprc)[:7] + ' , F1: '+str(f1)[:7] + ' , Cross-entropy Loss: ' + \
 					  str(loss)[:7])				
 			else:
 				mse, r2, p_val, CI, logits, loss_test = self.test_(testing_generator, model_max)
-				test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
-				test_table.add_row(list(map(float2str, [mse, r2, p_val, CI])))
+				test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index", "Loss"])
+				test_table.add_row(list(map(float2str, [mse, r2, p_val, CI, loss_test])))
 				if verbose:
 					print('Testing MSE: ' + str(mse) + ' , Pearson Correlation: ' + str(r2) 
 					  + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI))
